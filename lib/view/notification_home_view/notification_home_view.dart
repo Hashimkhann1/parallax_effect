@@ -20,8 +20,10 @@ class _NotificationHomeViewState extends State<NotificationHomeView> {
     // TODO: implement initState
     super.initState();
     notificationViewModel.requestNotificationPermission();
+    notificationViewModel.firebaseInit(context);
+    notificationViewModel.setupInteractMessage(context);
 
-    notificationViewModel.isTokenRefresh();
+    // notificationViewModel.isTokenRefresh();
     notificationViewModel.getDeviceToken().then((value) {
       print("token ");
       print(value);
