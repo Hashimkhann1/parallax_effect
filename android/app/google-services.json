@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "169826982182",
+    "project_id": "flutter-notification-dfa93",
+    "storage_bucket": "flutter-notification-dfa93.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:169826982182:android:19bfcd19050bf65293c9e7",
+        "android_client_info": {
+          "package_name": "com.hmk.parallaxscroll"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCt6FD6bCL_ZZzkAHV_4y8x7JyaXTQQL98"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
