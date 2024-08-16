@@ -3,6 +3,7 @@
 import 'dart:io';
 import 'dart:math';
 
+import 'package:app_settings/app_settings.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
@@ -142,6 +143,9 @@ class NotificationViewModel {
     }else{
       if (kDebugMode) {
         print("User denied permission");
+        Future.delayed(Duration(seconds: 2) , () {
+          AppSettings.openAppSettings(type: AppSettingsType.notification);
+        });
       }
     }
 
@@ -152,6 +156,7 @@ class NotificationViewModel {
   Future<String> getDeviceToken() async {
 
     String? token = await messaging.getToken();
+    print("=> deviece token >>> " + token.toString());
     return token!;
 
   }
