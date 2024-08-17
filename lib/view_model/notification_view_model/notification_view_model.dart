@@ -18,63 +18,32 @@ class NotificationViewModel {
   FirebaseMessaging messaging = FirebaseMessaging.instance;
 
 
-  void initLocalNotification(BuildContext context , RemoteMessage message) async {
-
-    var androidInitializationSettings = const AndroidInitializationSettings('@mipmap/ic_launcher');
-    var iosInitializationSettings = const DarwinInitializationSettings();
-
-    var initializationSetting = InitializationSettings(
-      android: androidInitializationSettings,
-      iOS: iosInitializationSettings,
-    );
-
-    await _flutterLocalNotificationsPlugin.initialize(
-        initializationSetting,
-      onDidReceiveNotificationResponse: (payload) {
-          handleMessage(context, message);
-      }
-    );
-
-  }
-
-
-  void firebaseInit(BuildContext context) {
-    FirebaseMessaging.onMessage.listen((message) {
-      
-      if (kDebugMode) {
-        print(message.notification!.title.toString());
-        print(message.notification!.body.toString());
-        print(message.data['type']);
-        print(message.data['id']);
-      }
-
-      if(Platform.isAndroid){
-        initLocalNotification(context, message);
-        showNotification(message);
-      }else{
-        showNotification(message);
-      }
-
-    });
-  }
-
+  /// show notification pop up
   Future<void> showNotification(RemoteMessage message) async {
 
     AndroidNotificationChannel channel = AndroidNotificationChannel(
-        Random.secure().nextInt(100000).toString(),
-        "High Importance Notification",
-      importance: Importance.max
+        message.notification!.android!.channelId.toString(),
+        message.notification!.android!.channelId.toString(),
+      importance: Importance.high,
+      showBadge: true,
+      playSound: true
     );
+
+    /// android setting
 
     AndroidNotificationDetails androidNotificationDetails = AndroidNotificationDetails(
         channel.id.toString(),
         channel.name.toString(),
-      channelDescription: "Your channel Description",
+      channelDescription: "channel Description",
       importance: Importance.high,
       priority: Priority.high,
+      playSound: true,
+      sound: channel.sound,
       ticker: 'ticker',
       icon: '@mipmap/ic_launcher'
     );
+
+    /// IOS setting
 
     const DarwinNotificationDetails darwinNotificationDetails = DarwinNotificationDetails(
       presentAlert: true,
@@ -82,42 +51,25 @@ class NotificationViewModel {
       presentSound: true
     );
 
+    /// marge setting
     NotificationDetails notificationDetails = NotificationDetails(
       android: androidNotificationDetails,
       iOS: darwinNotificationDetails
     );
 
+    /// show notification
     Future.delayed(Duration.zero , () {
       _flutterLocalNotificationsPlugin.show(
           0,
           message.notification!.title.toString(),
           message.notification!.body.toString(),
-          notificationDetails);
+          notificationDetails,
+        payload: "my_data"
+      );
     });
   }
 
-  Future<void> setupInteractMessage(BuildContext context) async {
-    RemoteMessage? initialMessage = await FirebaseMessaging.instance.getInitialMessage();
 
-
-    /// this for when ap is terminated
-    if(initialMessage != null){
-      handleMessage(context, initialMessage);
-    }
-
-    /// when app is in background
-    FirebaseMessaging.onMessageOpenedApp.listen((event) {
-      handleMessage(context, event);
-    });
-
-  }
-
-  /// below method is for when app is forground and recive notification to reqirect the user to the defing scrren
-  void handleMessage(BuildContext context , RemoteMessage message) {
-    if(message.data['type'] == 'message'){
-      Navigator.push(context, MaterialPageRoute(builder: (context) => MessageScreenView()));
-    }
-  }
 
   /// request notification permission
   void requestNotificationPermission() async {
@@ -161,7 +113,89 @@ class NotificationViewModel {
 
   }
 
+  /// initilaze notification
+  void initLocalNotification(BuildContext context , RemoteMessage message) async {
 
+    var androidInitializationSettings = const AndroidInitializationSettings('@mipmap/ic_launcher');
+    var iosInitializationSettings = const DarwinInitializationSettings();
+
+    var initializationSetting = InitializationSettings(
+      android: androidInitializationSettings,
+      iOS: iosInitializationSettings,
+    );
+
+    await _flutterLocalNotificationsPlugin.initialize(
+        initializationSetting,
+        onDidReceiveNotificationResponse: (payload) {
+          handleMessage(context, message);
+        }
+    );
+
+  }
+
+  /// firebase init
+  void firebaseInit(BuildContext context) {
+    FirebaseMessaging.onMessage.listen((message) {
+
+      if (kDebugMode) {
+        print(message.notification!.title.toString());
+        print(message.notification!.body.toString());
+        print(message.data['type']);
+        print(message.data['id']);
+      }
+
+      /// ios
+      if(Platform.isIOS){
+        isForGroundMessage();
+      }
+
+      /// android
+      if(Platform.isAndroid){
+        initLocalNotification(context, message);
+        // handleMessage(context, message);
+        showNotification(message);
+      }else{
+        showNotification(message);
+      }
+
+    });
+  }
+
+  /// forground
+  Future isForGroundMessage() async {
+    await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
+      alert: true,
+      badge: true,
+      sound: true
+    );
+  }
+
+  /// backgrounf and terminated
+  Future<void> setupInteractMessage(BuildContext context) async {
+    RemoteMessage? initialMessage = await FirebaseMessaging.instance.getInitialMessage();
+
+
+    /// this for when app is terminated
+    if(initialMessage != null){
+      handleMessage(context, initialMessage);
+    }
+
+    /// when app is in background
+    FirebaseMessaging.onMessageOpenedApp.listen((event) {
+      handleMessage(context, event);
+    });
+
+  }
+
+  /// below method is for when app is forground and recive notification to reqirect the user to the defing scrren
+  void handleMessage(BuildContext context , RemoteMessage message) {
+    if(message.data['type'] == 'message'){
+      Navigator.push(context, MaterialPageRoute(builder: (context) => MessageScreenView()));
+    }
+  }
+
+
+  /// is token refresh
   void isTokenRefresh() async {
     messaging.onTokenRefresh.listen((event) {
       event.toString();
